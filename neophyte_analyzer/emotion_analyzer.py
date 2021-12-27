@@ -7,25 +7,25 @@ from deepface.basemodels import VGGFace
 
 emotions = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
 
-def create_model(input_shape, num_classes):
-    data_augmentation = keras.Sequential(
-        [
+vgg = VGGFace.baseModel()
+data_augmentation = keras.Sequential(
+    [
         layers.RandomFlip("horizontal"),
         layers.RandomRotation(0.1),
-        ]
-    )
-    vgg = VGGFace.baseModel()
+    ]
+)
+cnt = 0
+for lyer in vgg.layers:
+    if cnt > 34:
+        lyer.trainable = True
+        lyer.activation = tf.keras.layers.Activation('tanh')
+    else:
+        lyer.trainable = False
+    cnt = cnt + 1
+vgg_face = Model(inputs=vgg.layers[0].input, outputs=vgg.layers[-2].output)
 
-    cnt = 0
-    for lyer in vgg.layers:
-        if cnt > 34:
-            lyer.trainable = True
-            lyer.activation = tf.keras.layers.Activation('tanh')
-        else:
-            lyer.trainable = False
-        cnt = cnt + 1
-    vgg_face = Model(inputs=vgg.layers[0].input, outputs=vgg.layers[-2].output)
 
+def create_model(input_shape, num_classes):
     inputs = keras.Input(shape=input_shape)
     # Image augmentation block
     x = data_augmentation(inputs)
@@ -39,11 +39,12 @@ def create_model(input_shape, num_classes):
 
     return keras.Model(inputs, outputs)
 
+
 class EmotionAnalyzer:
 
-    def __init__(self, input_shape = (224, 224), num_classes = 7, weights_dir='ml_models'):
+    def __init__(self, input_shape=(224, 224), num_classes=7, weights_dir='ml_models'):
         self.face_detector = FaceDetector()
-        self.model = create_model(input_shape = input_shape, num_classes = num_classes)
+        self.model = create_model(input_shape=input_shape + (3,), num_classes=num_classes)
         self.model.load_weights(f'{weights_dir}/save_at_40 (1).h5')
 
     def predict(self, image):

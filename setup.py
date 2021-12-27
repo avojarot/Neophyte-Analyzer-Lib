@@ -42,9 +42,10 @@ setup(
     keywords=['pip', MODULE_NAME],
     packages_dir={MODULE_NAME: MODULE_NAME},
     long_description=open('README.md').read(),
-    install_requires=["cv2",
+    install_requires=["opencv-python",
                       "numpy~=1.21.1",
                       'mediapipe',
-                      'tensorflow'
+                      'tensorflow',
+                      'deepface'
                       ]
 )
